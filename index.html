@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VALENCE QUARTZ | Precision Gas Systems</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #ffffff; scroll-behavior: smooth; color: #0f172a; }
+        .brand-font { font-family: 'Syncopate', sans-serif; }
+        [x-cloak] { display: none !important; }
+        
+        .hero-gradient {
+            background: radial-gradient(circle at center, rgba(6, 182, 212, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+        }
+
+        .nav-glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .page-fade { animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Checkout specific styles */
+        .input-field {
+            border: 1px solid #e2e8f0;
+            padding: 1rem;
+            width: 100%;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            background: #fff;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 1px #06b6d4;
+        }
+        .checkout-label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+            color: #64748b;
+        }
+        
+        /* Stripe Element specific styling container */
+        .StripeElement {
+            box-sizing: border-box;
+            height: 40px;
+            padding: 10px 12px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            background-color: white;
+            box-shadow: 0 1px 3px 0 #e6ebf1;
+            -webkit-transition: box-shadow 150ms ease;
+            transition: box-shadow 150ms ease;
+        }
+        .StripeElement--focus {
+            box-shadow: 0 1px 3px 0 #cfd7df;
+        }
+        .StripeElement--invalid {
+            border-color: #fa755a;
+        }
+        .StripeElement--webkit-autofill {
+            background-color: #fefde5 !important;
+        }
+    </style>
+</head>
+<body x-data="{ 
+    page: 'home', 
+    cart: 0,
+    cartItems: [],
+    checkoutStep: 1,
+    selectedProduct: null,
+    get cartTotal() {
+        return this.cartItems.reduce((acc, item) => acc + item.price, 0);
+    },
+    openProduct(product) {
+        this.selectedProduct = product;
+        this.page = 'product';
+        window.scrollTo(0,0);
+    },
+    addToCart(product) {
+        this.cartItems.push(product);
+        this.cart = this.cartItems.length;
+        this.page = 'cart';
+        window.scrollTo(0,0);
+    },
+    removeFromCart(index) {
+        this.cartItems.splice(index, 1);
+        this.cart = this.cartItems.length;
+    },
+    products: [
+        /* MEDICAL CATEGORY */
+        { id: 1, cat: 'medical', name: 'VQ-99 USP Cylinder 10L', price: 420.00, sku: 'VAL-MED-01', img: 'https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRo3SEPD1O7XxBsw8NeHJJTZKWYATIu1hqFt-6Yua24O9c7vcKczI-2GXNxCjKCPpQTS_u4MDPWrPH6MOWwrv1FzQHaSTmC7TDJJXyPg9e4Rjurjp9mdjCTwtigqAKiuukhDgjIRw&usqp=CAc', desc: 'Pharmacopoeia grade nitrous oxide specifically processed for clinical environments. Features a chrome-plated residual pressure valve.' },
+        { id: 2, cat: 'medical', name: 'Nasal Hood', price: 1850.00, sku: 'VAL-MED-02', img: 'https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSUlQxJZ_C3I0uZNtGlCy92nIRIC_SL1fo1jT1FC_1aqesfKl4rZmJG3PkjeC3YInMRmmMfwF2TSKw5xS_YNkm69OZKBbBg9zdpdGHsLm6iaiZYHHiucg9Uf88Wz5icy63r6jYYACV5pmsg&usqp=CAc', desc: 'Precision delivery interface with digital fail-safe mechanisms and real-time flow monitoring.' },
+        { id: 3, cat: 'medical', name: 'Mini High Temperature Autoclave', price: 310.00, sku: 'VAL-MED-05', img: 'https://images.openai.com/thumbnails/url/ZUcnS3icDcndEoFAGADQJ6qUFZoxZicjRCSFvavtbzPV1n7TtB7K-3gbzu35fkoALixNyxraSw5ZqkDS6GohIAZGVdrWmihbzllTrLvV_yzspUuH-t1N6qayT6K5vo0n-O6PfX3hCMgL-ZlsbOReqYciPJWnSbYJH9XjGc83tpcfKhGyxAyMyGbO0M7exyDIizFviTw7Wx_EkCzAMK-oxnaaE8dYkkAnO-zCk_4A4Ig9Cg', desc: 'Ultra-lightweight high-durability transport solution for critical ward mobility.' },
+        { id: 4, cat: 'medical', name: 'VARON VL-2 Portable Oxygen Concentrator', price: 125.00, sku: 'VAL-MED-04', img: 'https://images.openai.com/thumbnails/url/ez3Ap3icDcldDoIgAADgE6GpLUdba2XOzNLh6oFeGuIfM5CCUjxV1-k29b1-30-rtVRL264EfRqpqxLoQrhWozTRjFq057ZqeymZaNaP1f-Wm7SEEUVzRVQ5jMPMM0DQDvAayIt3h-fGZDzvb902JiKfmeK0qLi_O0BvQmBMxFTg7ILh4e3UJGjM5L9S4w9sgh5DjASZk4_FFp8SNzoSfg9iP6QODvdsg-m1UugH2UU-7g', desc: 'Single-use precision circuitry designed for minimal resistance and optimal delivery.' },
+        { id: 5, cat: 'medical', name: 'Quirumed 3L Class B Autoclave', price: 310.00, sku: 'VAL-MED-05', img: 'https://images.openai.com/thumbnails/url/loqpEXicDclREkJAAADQE0WKipmmwbBCYqdIPztaLKpFu0Mu1X26Tb3f9_1UnHdME8WC4tfU8SKf8RuVBMJ4xmss4PYpsqrtupqSXb_9n6YHuQowhCiPHcnEUFHLeNybWQxOqZmkMASeRxsHEiKvKkQN4Abmxl4UyX0t6wWClzNLrpYceP6DRIPsQpS4-RhaRohoOo-OS3DAzeC5fUn9aIpsi8EhPQWZ4rzHH7aQPOM', desc: 'Ultra-lightweight high-durability transport solution for critical ward mobility.' },
+        { id: 6, cat: 'medical', name: 'Cryosurgery Gun (Nitrous Oxide)', price: 640.00, sku: 'VAL-MED-06', img: 'https://images.openai.com/thumbnails/url/s80VrHicu9mSUVJSUGylr5-al1xUWVCSmqJbkpRnqJdeXJJYkpmsl5yfq1-ckV9QkJmXbl9oC5SzcvRLsXRPDgmqCjM0MNWNTyyvjPdOjg80jwx0zY2q9PTwLHE2dzM3yc0PcQ_2cs8LMi_3Syo2dNfVdQ6pcDYqDfAMis-PiHczzCxK1s3yLypyCQQA3vAuuw', desc: 'Integrated hospital wall-mount system for permanent infrastructure piping.' },
+        { id: 7, cat: 'medical', name: 'Dental Polisher', price: 640.00, sku: 'VAL-MED-06', img: 'https://images.openai.com/static-rsc-1/KKsWDvWv1HsHmeZTPXGTqz-1_K6PO5wBPzW2iPS9DSNf0A6o_egh9mQ2NEwD3Hvh4INHZMfOtznrIT-Vw_u6joFsg1DTpgWXWUINL-lJ41C2er-aGSvjVYsarJkv5jA8vEm7vu4BRLXp2kr5-HGw9ES4bdsHylava15gakAQJ12yHGxA8rI1D31z_f9VAv79uAIbOWdaiQsPzt6VF20s8Swr0vyYrvCa0DHk8jamIOE', desc: 'Integrated hospital wall-mount system for permanent infrastructure piping.' },
+        { id: 6, cat: 'medical', name: 'AliveCor KardiaMobile 1 Lead ECG Monitor', price: 640.00, sku: 'VAL-MED-06', img: 'https://images.openai.com/thumbnails/url/XZAARHicDcnbCoIwAADQL1JRs6UQYSpNxVsWYS-hc15Lp1vI_Kp-p7-p83q-n4YxQg1JwgOaOWG4FFgxKGJNWc5aJKLxJdFmJKQd6sO0_59hhqV-Qok7n0ESOeub5SqxFXO3BCGU_SsRVm9YQj4trtr5Hk31GR63_V2-AEQ2Fk9uLTxbzUwxB_IzGzHMbK2oKwWkaRxiGMTcevSF2jtBiRcQad2qr7lQuZ7ZkDH5AYqzPmw', desc: 'Integrated hospital wall-mount system for permanent infrastructure piping.' },
+
+        /* FOOD CATEGORY */
+        { id: 7, cat: 'food', name: 'Quartz-Infusion 2.2L Tank', price: 135.00, sku: 'VAL-CHEF-01', img: 'https://risingwholesale.com/cdn/shop/files/s-l1600.jpg?v=1759260814', desc: 'Culinary grade E942 gas. Designed for high-volume rapid infusion and foam creation.' },
+        { id: 8, cat: 'food', name: 'Professional Siphon 1L Black', price: 95.00, sku: 'VAL-CHEF-02', img: 'https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRPP5cRkgIutLn8RoXcHrlbG21WwtGsZh_GOCTsYb8S-XsWrgUG2uNL2d7lrI69_I8e1yzrXXQwhDu3sajVJCgVYkemtKNbGjzpV3qibo_04y5ZhG2YC7Oadbykti5jhG3ll_r1Vkc&usqp=CAc', desc: 'Matte-finish pressurized siphon with triple-seal tech for nitrogen infusions.' },
+        { id: 9, cat: 'food', name: 'Master-Charger Case (600ct)', price: 7200.00, sku: 'VAL-CHEF-03', img: 'https://www.accarparts.co.uk/wp-content/uploads/2017/12/6-amp-battery-charger.jpg', desc: 'Bulk supply for industrial kitchens and catering franchises. 100% recyclable steel.' },
+        { id: 10, cat: 'food', name: 'Molecular Mixology Nozzle', price: 45.00, sku: 'VAL-CHEF-04', img: 'https://images.unsplash.com/photo-1514362545818-20d40766f5ee?auto=format&fit=crop&q=80&w=800', desc: 'Precision micro-nozzle for delicate artistic plating and specialized gas injection.' },
+        { id: 11, cat: 'food', name: 'Rapid-Aroma Infuser Kit', price: 210.00, sku: 'VAL-CHEF-05', img: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&q=80&w=800', desc: 'Vacuum-assisted flavor transfer system utilizing VQ high-pressure tech.' },
+        { id: 12, cat: 'food', name: 'E942 High-Pressure Gauge', price: 88.00, sku: 'VAL-CHEF-06', img: 'https://images.unsplash.com/photo-1581092160192-428d66092dd2?auto=format&fit=crop&q=80&w=800', desc: 'Certified pressure regulator for safe culinary canister management.' },
+        { id: 13, cat: 'food', name: 'Quartz Gold Series (24pk)', price: 35.00, sku: 'VAL-CHEF-07', img: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800', desc: 'Premium small-format chargers for boutique beverage programs.' },
+
+        /* INDUSTRIAL CATEGORY */
+        { id: 14, cat: 'industrial', name: 'VQ-Performance NOS Bottle', price: 610.00, sku: 'VAL-IND-01', img: 'https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQiX8kYBPHGmmZXArrs3lBxje82KN3Sz-uFLM7Ij_drxLoMzzWsHrIq4sZhEy3KY9_4V24GYA0VJGzRWBHlQ_CwMhtPZH86D91vQhYPjPjQ5O0j-PFmyKxN7EPgRhWvjS5AEWFz_vE&usqp=CAc', desc: 'Competition-grade nitrous delivery for forced induction systems. High-flow valve included.' },
+        { id: 15, cat: 'industrial', name: 'Industrial Bulk 50L VQ', price: 2450.00, sku: 'VAL-IND-02', img: 'https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSPeU294FyR0aYlrKGx1SVj_UO_nrSGQdR8jRC4ulkL_kgPFpv_9HXOwHRRVRfMaLIt_FJxxvSLFE8DDZDCdKFph49YaQsu5dNgmee8PvYNuyLirGwctO8lwvpKs4CyOyL9MSfQouj7Jw&usqp=CAc', desc: 'Standard industrial supply for manufacturing and lab-scale chemical synthesis.' },
+        { id: 16, cat: 'industrial', name: 'Semiconductor-X 99.99%', price: 1100.00, sku: 'VAL-IND-03', img: 'https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTJDuReVWRGrlkn8XBeQ_yb4PQabtWPmDcOeS8uHE79OrhLWhdcpHGCEsLFbNXkdCSQzm85_Ku-sFLdk1J_W8cwBXg_4TJjo8a-ie08S-jer1gp_MN1XLu6Aw', desc: 'Ultra-high purity gas for plasma etching and chemical vapor deposition processes.' },
+        { id: 17, cat: 'industrial', name: 'High-Flow Solenoid V3', price: 195.00, sku: 'VAL-IND-04', img: 'https://images.unsplash.com/photo-1504933350103-e840ee950d40?auto=format&fit=crop&q=80&w=800', desc: 'Electronic actuator for precision timing in high-performance automotive applications.' },
+        { id: 18, cat: 'industrial', name: 'Digital Pressure Regulator', price: 440.00, sku: 'VAL-IND-05', img: 'https://images.unsplash.com/photo-1581092162734-a9298371f875?auto=format&fit=crop&q=80&w=800', desc: 'Micro-adjustable gas flow regulator with LCD feedback and safety cut-off.' },
+        { id: 19, cat: 'industrial', name: 'Gas Leak Detection Scan', price: 380.00, sku: 'VAL-IND-06', img: 'https://images.unsplash.com/photo-1581092921469-7d0004028367?auto=format&fit=crop&q=80&w=800', desc: 'Handheld ultrasonic scanner for identifying infrastructure integrity leaks.' },
+        { id: 20, cat: 'industrial', name: 'Cryogenic Shield Valve', price: 275.00, sku: 'VAL-IND-07', img: 'https://images.unsplash.com/photo-1581092160190-267df84d4b2e?auto=format&fit=crop&q=80&w=800', desc: 'Low-temperature resistant isolation valve for liquid-phase gas management.' },
+
+        /* CREAM CHARGERS */
+        { id: 21, cat: 'chargers', name: 'Smart Whip Cream Chargers', price: 12.23, sku: 'Smart-024', img: 'https://creamchargerswarehouse.co.uk/wp-content/uploads/2022/02/Smartwhip-Original-Steel-Cylinder.png.webp', desc: 'Top-Quality Whipped Cream Chargers for Use in Homes, Coffee Shops, Restaurants and Caterers. Contains 8g of pure nitrous oxide (N2O) for a rich, fluffy consistency without any oily residue. 100% recyclable stainless steel.' },
+        { id: 22, cat: 'chargers', name: 'Miami Magic Cream Chargers', price: 26.30, sku: 'Supreme-048', img: 'https://static.wixstatic.com/media/46cd05_00d9b4abf7da4cc69623c99c6b42211a~mv2.webp/v1/fill/w_480,h_480,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/46cd05_00d9b4abf7da4cc69623c99c6b42211a~mv2.webp', desc: 'Top-Quality Whipped Cream Chargers for Use in Homes, Coffee Shops, Restaurants and Caterers. Contains 8g of pure nitrous oxide (N2O) for a rich, fluffy consistency without any oily residue. 100% recyclable stainless steel.' },
+        { id: 23, cat: 'chargers', name: 'Gold Whip Cream Chargers', price: 37.93, sku: 'Liss-072', img: 'https://pennylanegifts.com/cdn/shop/files/GOLDWHIPGE6CT.jpg?v=1729008197', desc: 'Top-Quality Whipped Cream Chargers for Use in Homes, Coffee Shops, Restaurants and Caterers. Contains 8g of pure nitrous oxide (N2O) for a rich, fluffy consistency without any oily residue. 100% recyclable stainless steel.' },
+        { id: 25, cat: 'chargers', name: 'Fresh Whip Cream Chargers', price: 70.98, sku: 'Fresh-144', img: 'https://www.creamsupplies.uk/temp/fresh-whip-mint-cream-charger-smart-fast-gas-nitrous-cylinder-tank-single-nozzle.webp', desc: 'Top-Quality Whipped Cream Chargers for Use in Homes, Coffee Shops, Restaurants and Caterers. Contains 8g of pure nitrous oxide (N2O) for a rich, fluffy consistency without any oily residue. 100% recyclable stainless steel.' },
+        { id: 26, cat: 'chargers', name: 'Great Whip Cream Chargers', price: 91.79, sku: 'Great-192', img: 'https://m.media-amazon.com/images/I/61MFtz7kwYL.jpg', desc: 'Top-Quality Whipped Cream Chargers for Use in Homes, Coffee Shops, Restaurants and Caterers. Contains 8g of pure nitrous oxide (N2O) for a rich, fluffy consistency without any oily residue. 100% recyclable stainless steel.' },
+        { id: 27, cat: 'chargers', name: 'Fast Whip Cream Chargers', price: 112.60, sku: 'FastWhip-240', img: 'https://www.creamsupplies.uk/temp/fast-whip-cream-charger-nitrous-cylinder-tank-single-white.webp', desc: 'Top-Quality Whipped Cream Chargers for Use in Homes, Coffee Shops, Restaurants and Caterers. Contains 8g of pure nitrous oxide (N2O) for a rich, fluffy consistency without any oily residue. 100% recyclable stainless steel.' },
+        { id: 28, cat: 'chargers', name: 'Fast Gas Cream Chargers', price: 12.23, sku: 'FastGas-024', img: 'https://www.nitrousoxides.co.uk/wp-content/uploads/2023/05/fast-gas-cream-charger-cylinder-nitrous-n2o-pack-3.png', desc: 'Top-Quality Whipped Cream Chargers for Use in Homes, Coffee Shops, Restaurants and Caterers. Contains 8g of pure nitrous oxide (N2O) for a rich, fluffy consistency without any oily residue. 100% recyclable stainless steel.' },
+        { id: 31, cat: 'chargers', name: 'Infuso Whip Cream Chargers', price: 48.95, sku: 'Infuso-096', img: 'https://www.directcream.co.uk/temp/infuso-n2o-640g-cylinder-cream-chargers-three.webp', desc: 'Top-Quality Whipped Cream Chargers for Use in Homes, Coffee Shops, Restaurants and Caterers. Contains 8g of pure nitrous oxide (N2O) for a rich, fluffy consistency without any oily residue. 100% recyclable stainless steel.' },
+
+        /* N2O TANKS CATEGORY */
+        { id: 32, cat: 'tanks', name: '640g Whipped Cream Chargers N2O Tank | WellWhip', price: 28.50, sku: 'VAL-TNK-01', img: 'https://wellwhipgas.com/wp-content/uploads/2026/02/Cream-Chargers-Tanks-Nitrous-Oxide-N2O-Cylinder-Fast-Whip-Gas-8g-580g-615g-640g-1364g-2000g-2100g-Sweet-Food-Tools-50-WellWhip-select-whip-2-2.jpg', desc: 'Industry-standard 640g high-yield N2O cylinder. Constructed with pure carbon steel for maximum structural integrity.' },
+        { id: 33, cat: 'tanks', name: 'Superior Whip', price: 74.00, sku: 'VAL-TNK-02', img: 'https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRE4ZeIav0MqgcS_bzBIQhx-4_I4lo26Me225F87ActglZeP7qLqNiaSTuZKAnFPxCd7HxB6RabVYy4m9uFKjg4hbjEu12j7cU8VuTQe3cCaTSjZ6XUX9qyUpAKFIdRp_AlFF68pnn8&usqp=CAc', desc: 'Extended capacity 2000g cylinder designed for high-volume commercial catering and continuous rapid infusion.' },
+        { id: 34, cat: 'tanks', name: 'Gold Whip Mini Tank (200g) | Food Grade N2O | Nitrous Oxide', price: 145.00, sku: 'VAL-TNK-03', img: 'https://www.nextdaycoffee.co.uk/media/plg_system_vmmagiczoomplus/magictoolbox_cache/8c95d73fec130487c102a73bf1ab42ce/3/7/3708/thumb450x450/1378495977/Gold-Whip-Mini-Tank-001.jpg', desc: 'Carbon-fiber wrapped ultra-lightweight 3.3L tank. Reduces transport weight by 40% while increasing burst pressure thresholds.' },
+    ]
+}">
+
+    <div class="bg-[#0a0a0a] text-white py-3 px-8 flex justify-between items-center text-[10px] tracking-[0.4em] font-bold">
+        <div class="flex items-center space-x-6">
+            <span><i class="fa-solid fa-microchip text-cyan-400 mr-2"></i> ISO 9001 PRECISION</span>
+            <span class="hidden md:inline"><i class="fa-solid fa-shield-check text-cyan-400 mr-2"></i> GLOBAL COMPLIANCE</span>
+        </div>
+        <div class="flex items-center space-x-4 uppercase">
+            <span>Market: <span class="text-green-500">Stable</span></span>
+            <span class="text-gray-500">Portal: 2026.04.VQ</span>
+        </div>
+    </div>
+
+    <nav class="nav-glass border-b border-gray-100 sticky top-0 z-[100]">
+        <div class="max-w-[1440px] mx-auto px-8 h-24 flex justify-between items-center">
+            <div class="flex items-center space-x-4 cursor-pointer" @click="page = 'home'">
+                <div class="w-12 h-12 bg-[#0a0a0a] flex items-center justify-center rounded-tr-xl rounded-bl-xl shadow-2xl shadow-cyan-500/20">
+                    <span class="brand-font text-white text-xl">V</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="brand-font text-2xl font-bold tracking-tighter leading-none">VALENCE</span>
+                    <span class="text-[10px] tracking-[0.6em] font-extrabold text-cyan-600 uppercase">QUARTZ</span>
+                </div>
+            </div>
+
+            <div class="hidden lg:flex space-x-6 text-[11px] font-bold uppercase tracking-[0.2em] text-gray-400">
+                <a @click="page = 'home'" href="#" :class="page === 'home' ? 'text-cyan-600' : 'hover:text-black'" class="transition">Home</a>
+                <a @click="page = 'chargers'" href="#" :class="page === 'chargers' ? 'text-cyan-600' : 'hover:text-black'" class="transition">Cream Chargers</a>
+                <a @click="page = 'tanks'" href="#" :class="page === 'tanks' ? 'text-cyan-600' : 'hover:text-black'" class="transition">N2O Tanks</a>
+                <a @click="page = 'medical'" href="#" :class="page === 'medical' ? 'text-cyan-600' : 'hover:text-black'" class="transition">Medical Supply</a>
+                <a @click="page = 'contact'" href="#" :class="page === 'contact' ? 'text-cyan-600' : 'hover:text-black'" class="transition">Contact</a>
+            </div>
+
+            <div class="flex items-center space-x-10">
+                <div class="relative cursor-pointer group" @click="page = 'cart'">
+                    <i class="fa-solid fa-bolt-lightning text-xl group-hover:text-cyan-500 transition"></i>
+                    <span class="absolute -top-3 -right-3 bg-[#0a0a0a] text-white text-[8px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-lg" x-text="cart"></span>
+                </div>
+                <button class="bg-[#0a0a0a] text-white px-10 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-cyan-600 transition-all rounded-sm shadow-xl">Private Portal</button>
+            </div>
+        </div>
+    </nav>
+
+    <div x-show="page === 'home'" x-cloak class="page-fade">
+        <header class="relative h-[90vh] bg-[#0a0a0a] flex items-center justify-center text-center overflow-hidden">
+            <div class="absolute inset-0 hero-gradient opacity-50"></div>
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+            
+            <div class="relative z-10 space-y-10 px-6">
+                <p class="text-cyan-500 text-[10px] font-bold uppercase tracking-[1em] mb-4">Establishing the Standard</p>
+                <h1 class="brand-font text-6xl md:text-9xl text-white font-bold leading-tight">THE POWER OF <br><span class="text-cyan-500">PURITY.</span></h1>
+                <p class="text-gray-400 text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed">
+                    Valence Quartz provides the infrastructure for critical gas delivery across the globe. From surgical suites to semiconductor labs.
+                </p>
+                <div class="flex justify-center space-x-6 pt-8">
+                    <button @click="page = 'industrial'" class="bg-white text-black px-12 py-6 font-bold uppercase tracking-widest text-[11px] hover:bg-cyan-500 hover:text-white transition-all shadow-2xl">Enter Catalog</button>
+                    <button class="border border-white/20 text-white px-12 py-6 font-bold uppercase tracking-widest text-[11px] hover:bg-white/10 transition-all">Corporate Inquiry</button>
+                </div>
+            </div>
+
+            <div class="absolute bottom-10 left-10 flex flex-col items-start space-y-2">
+                <div class="h-2 w-20 bg-cyan-600"></div>
+                <span class="text-[9px] text-gray-500 font-bold uppercase tracking-[0.4em]">VQ GLOBAL NETWORK v4.0</span>
+            </div>
+        </header>
+
+        <section class="max-w-[1440px] mx-auto px-8 py-32 grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div @click="page = 'medical'" class="group relative bg-[#f8fafc] p-16 cursor-pointer overflow-hidden transition-all duration-500 hover:bg-black hover:text-white border-t border-gray-100">
+                <span class="brand-font text-8xl absolute -right-4 -bottom-4 text-black/5 group-hover:text-white/5 transition-all">01</span>
+                <i class="fa-solid fa-microscope text-3xl mb-8 text-cyan-600"></i>
+                <h3 class="brand-font text-2xl font-bold mb-6 italic tracking-tighter">MEDICAL GRADE</h3>
+                <p class="text-gray-500 group-hover:text-gray-400 text-sm leading-loose mb-10">High-stability USP certified Nitrous Oxide for clinical sedation and professional healthcare environments.</p>
+                <button class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-cyan-500 pb-1">Initialize Browse</button>
+            </div>
+
+            <div @click="page = 'chargers'" class="group relative bg-[#f8fafc] p-16 cursor-pointer overflow-hidden transition-all duration-500 hover:bg-black hover:text-white border-t border-gray-100">
+                <span class="brand-font text-8xl absolute -right-4 -bottom-4 text-black/5 group-hover:text-white/5 transition-all">02</span>
+                <i class="fa-solid fa-glass-water text-3xl mb-8 text-cyan-600"></i>
+                <h3 class="brand-font text-2xl font-bold mb-6 italic tracking-tighter">CREAM CHARGERS</h3>
+                <p class="text-gray-500 group-hover:text-gray-400 text-sm leading-loose mb-10">Top-Quality Whipped Cream Chargers from all major industry brands. Contains 8g of pure N2O.</p>
+                <button class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-cyan-500 pb-1">Initialize Browse</button>
+            </div>
+
+            <div @click="page = 'industrial'" class="group relative bg-[#f8fafc] p-16 cursor-pointer overflow-hidden transition-all duration-500 hover:bg-black hover:text-white border-t border-gray-100">
+                <span class="brand-font text-8xl absolute -right-4 -bottom-4 text-black/5 group-hover:text-white/5 transition-all">03</span>
+                <i class="fa-solid fa-bolt text-3xl mb-8 text-cyan-600"></i>
+                <h3 class="brand-font text-2xl font-bold mb-6 italic tracking-tighter">INDUSTRIAL CORE</h3>
+                <p class="text-gray-500 group-hover:text-gray-400 text-sm leading-loose mb-10">Precision tech-grade Nitrous for high-performance automotive tuning and semiconductor etching processes.</p>
+                <button class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-cyan-500 pb-1">Initialize Browse</button>
+            </div>
+        </section>
+    </div>
+
+    <div x-show="['medical', 'food', 'industrial', 'chargers', 'tanks'].includes(page)" x-cloak class="page-fade min-h-screen">
+        <div class="bg-white border-b border-gray-100 py-32 px-8">
+            <div class="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-end gap-10">
+                <div class="space-y-6">
+                    <div class="flex items-center space-x-4 text-[9px] font-bold uppercase tracking-[0.4em] text-gray-400">
+                        <span class="cursor-pointer hover:text-cyan-600" @click="page = 'home'">Core</span>
+                        <span>/</span>
+                        <span class="text-cyan-600" x-text="page"></span>
+                    </div>
+                    <h2 class="brand-font text-5xl md:text-7xl font-bold italic tracking-tighter" x-text="page.toUpperCase() + '.'"></h2>
+                </div>
+                <div class="max-w-md">
+                    <p class="text-gray-500 text-sm leading-loose border-l-4 border-cyan-500 pl-8 italic">
+                        Authorized VQ Catalog for the <span class="text-black font-bold uppercase" x-text="page"></span> sector. All cylinders are pre-inspected and ISO-2026 certified prior to dispatch.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <main class="max-w-[1440px] mx-auto px-8 py-24">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-20">
+                <template x-for="product in products.filter(p => p.cat === page)">
+                    <div class="group cursor-pointer" @click="openProduct(product)">
+                        <div class="bg-gray-100 aspect-[4/5] mb-8 overflow-hidden relative border border-gray-200">
+                            <img :src="product.img" 
+                                 class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700"
+                                 loading="lazy">
+                            <div class="absolute inset-0 bg-cyan-600/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span class="bg-white text-black px-6 py-3 text-[10px] font-bold tracking-widest uppercase shadow-xl translate-y-4 group-hover:translate-y-0 transition-transform">Inspect Specs</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[9px] font-black uppercase tracking-[0.3em] text-cyan-600" x-text="product.sku"></span>
+                                <span class="text-xs font-bold text-gray-400 uppercase">Available</span>
+                            </div>
+                            <h4 class="brand-font text-lg font-bold uppercase leading-tight" x-text="product.name"></h4>
+                            <p class="text-2xl font-light tracking-tighter mt-4" x-text="'£' + product.price.toFixed(2)"></p>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </main>
+    </div>
+
+    <div x-show="page === 'product'" x-cloak class="page-fade min-h-screen bg-white">
+        <div class="max-w-[1440px] mx-auto px-8 py-24">
+            <div class="mb-16">
+                <button @click="page = selectedProduct.cat" class="flex items-center space-x-4 text-[10px] font-bold uppercase tracking-[0.4em] text-gray-400 hover:text-black transition">
+                    <i class="fa-solid fa-arrow-left-long"></i>
+                    <span>Return to <span x-text="selectedProduct?.cat"></span> Core</span>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-24 items-start">
+                <div class="bg-gray-100 border border-gray-200 aspect-square overflow-hidden relative group">
+                    <img :src="selectedProduct ? selectedProduct.img : ''" 
+                         class="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110">
+                    <div class="absolute top-8 left-8">
+                        <span class="bg-[#0a0a0a] text-white px-4 py-2 text-[9px] font-bold tracking-[0.4em] uppercase">ISO Certified 2026</span>
+                    </div>
+                </div>
+
+                <div class="space-y-12">
+                    <div class="space-y-6">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-cyan-600 text-xs font-black uppercase tracking-widest" x-text="selectedProduct?.sku"></span>
+                            <div class="h-[1px] w-12 bg-gray-200"></div>
+                            <span class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">In Stock / Global Dispatch</span>
+                        </div>
+                        <h1 class="brand-font text-5xl md:text-6xl font-bold italic tracking-tighter uppercase leading-none" x-text="selectedProduct?.name"></h1>
+                        <p class="text-4xl font-light tracking-tighter" x-text="'£' + selectedProduct?.price.toFixed(2)"></p>
+                    </div>
+
+                    <div class="prose prose-sm text-gray-500 leading-loose max-w-lg italic border-l-4 border-cyan-500 pl-8">
+                        <p x-text="selectedProduct?.desc"></p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <button @click="addToCart(selectedProduct)" class="bg-[#0a0a0a] text-white py-6 font-bold uppercase tracking-widest text-[11px] hover:bg-cyan-600 transition-all flex items-center justify-center space-x-4">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>Add to Allocation</span>
+                        </button>
+                        <button class="border border-black text-black py-6 font-bold uppercase tracking-widest text-[11px] hover:bg-black hover:text-white transition-all">
+                            Instant Acquisition
+                        </button>
+                    </div>
+
+                    <div class="border-t border-gray-100 pt-10 mt-10">
+                        <h4 class="brand-font text-xs font-bold uppercase tracking-[0.2em] mb-6">Technical Specifications</h4>
+                        <div class="grid grid-cols-2 gap-y-4 text-[10px] font-bold uppercase tracking-widest">
+                            <div class="text-gray-400 text-[9px]">Purity Level:</div>
+                            <div class="text-black text-right">99.98% Guaranteed</div>
+                            <div class="text-gray-400 text-[9px]">Container:</div>
+                            <div class="text-black text-right">High-Tensile Alloy</div>
+                            <div class="text-gray-400 text-[9px]">Traceability:</div>
+                            <div class="text-black text-right">Blockchain VQ-Scan</div>
+                            <div class="text-gray-400 text-[9px]">Expedited:</div>
+                            <div class="text-black text-right">Available</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="page === 'cart'" x-cloak class="page-fade min-h-screen bg-[#fbfcfd] py-20 px-8">
+        <div class="max-w-[1200px] mx-auto">
+            <h2 class="brand-font text-4xl font-bold italic tracking-tighter mb-10">YOUR ALLOCATION</h2>
+            
+            <div x-show="cartItems.length === 0" class="text-gray-500 font-bold uppercase tracking-widest text-sm bg-white p-8 border border-gray-200">
+                Your allocation is currently empty.
+                <div class="mt-6">
+                    <button @click="page = 'home'" class="bg-[#0a0a0a] text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-cyan-600 transition-all">Return to Catalog</button>
+                </div>
+            </div>
+            
+            <div x-show="cartItems.length > 0" class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                <div class="lg:col-span-2 space-y-6">
+                    <template x-for="(item, index) in cartItems" :key="index">
+                        <div class="bg-white border border-gray-200 p-6 flex flex-col md:flex-row justify-between md:items-center shadow-sm gap-6">
+                            <div class="flex items-center space-x-6">
+                                <div class="w-24 h-24 bg-gray-50 flex-shrink-0">
+                                    <img :src="item.img" class="w-full h-full object-cover">
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-black text-cyan-600" x-text="item.sku"></span>
+                                    <h4 class="text-sm font-bold uppercase leading-tight mt-1" x-text="item.name"></h4>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between md:justify-end space-x-8 w-full md:w-auto">
+                                <span class="text-xl font-light" x-text="'£' + item.price.toFixed(2)"></span>
+                                <button @click="removeFromCart(index)" class="text-red-500 hover:text-red-700 transition">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                
+                <div class="bg-white border border-gray-200 p-8 sticky top-32 shadow-sm h-fit">
+                    <h3 class="brand-font text-xl font-bold italic tracking-tighter mb-8 border-b border-gray-100 pb-4">SUMMARY</h3>
+                    <div class="space-y-4 text-[11px] font-bold uppercase tracking-widest mb-8">
+                        <div class="flex justify-between text-gray-400">
+                            <span>Subtotal</span>
+                            <span class="text-black" x-text="'£' + cartTotal.toFixed(2)"></span>
+                        </div>
+                        <div class="flex justify-between text-gray-400 border-b border-gray-100 pb-4">
+                            <span>Secure Shipping</span>
+                            <span class="text-green-500">Calculated at Checkout</span>
+                        </div>
+                        <div class="flex justify-between text-xl font-black tracking-tighter pt-2">
+                            <span>TOTAL</span>
+                            <span class="text-cyan-600" x-text="'£' + cartTotal.toFixed(2)"></span>
+                        </div>
+                    </div>
+                    <button @click="page = 'checkout'" class="w-full bg-[#0a0a0a] text-white py-6 text-[11px] font-bold uppercase tracking-widest hover:bg-cyan-600 transition-all shadow-xl">Proceed to Checkout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="page === 'checkout'" x-cloak class="page-fade min-h-screen bg-[#fbfcfd] py-20 px-8">
+        <div class="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-12">
+            
+            <div class="lg:col-span-2 space-y-6">
+                
+                <div class="bg-white border border-gray-200 p-8 shadow-sm">
+                    <div class="flex justify-between items-center mb-10">
+                        <h2 class="brand-font text-2xl font-bold italic tracking-tighter">1 CONTACT INFORMATION</h2>
+                        <span x-show="checkoutStep > 1" @click="checkoutStep = 1" class="text-[10px] font-bold text-cyan-600 cursor-pointer underline">EDIT</span>
+                    </div>
+
+                    <div x-show="checkoutStep === 1" class="space-y-6 page-fade">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="checkout-label">First Name*</label>
+                                <input type="text" placeholder="Yenara" class="input-field">
+                            </div>
+                            <div>
+                                <label class="checkout-label">Last Name*</label>
+                                <input type="text" placeholder="Bollegala" class="input-field">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="checkout-label">Email Address*</label>
+                            <input type="email" placeholder="yenara.bollegala@gmail.com" class="input-field">
+                        </div>
+                        <div>
+                            <label class="checkout-label">Telephone*</label>
+                            <div class="flex">
+                                <span class="bg-gray-100 border border-r-0 border-gray-200 px-4 py-4 text-xs font-bold flex items-center tracking-widest">GB</span>
+                                <input type="tel" placeholder="7719762080" class="input-field">
+                            </div>
+                        </div>
+                        <button @click="checkoutStep = 2" class="bg-[#0a0a0a] text-white px-10 py-5 text-[10px] font-bold uppercase tracking-widest hover:bg-cyan-600 transition-all">Save & Continue</button>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 p-8 shadow-sm">
+                    <div class="flex justify-between items-center mb-10">
+                        <h2 class="brand-font text-2xl font-bold italic tracking-tighter" :class="checkoutStep < 2 ? 'opacity-20' : ''">2 PACKAGE OPTIONS</h2>
+                        <span x-show="checkoutStep > 2" @click="checkoutStep = 2" class="text-[10px] font-bold text-cyan-600 cursor-pointer underline">EDIT</span>
+                    </div>
+
+                    <div x-show="checkoutStep === 2" class="space-y-6 page-fade">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label class="checkout-label">First Name*</label><input type="text" class="input-field"></div>
+                            <div><label class="checkout-label">Last Name*</label><input type="text" class="input-field"></div>
+                        </div>
+                        <div><label class="checkout-label">Address Finder</label><input type="text" placeholder="Start typing first line..." class="input-field"></div>
+                        <div><label class="checkout-label">Address Line 1*</label><input type="text" placeholder="8 Maltese Cross Close" class="input-field"></div>
+                        <div><label class="checkout-label">Address Line 2</label><input type="text" placeholder="Woolton" class="input-field"></div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div><label class="checkout-label">Postal Code*</label><input type="text" placeholder="L25 7BH" class="input-field"></div>
+                            <div><label class="checkout-label">City*</label><input type="text" placeholder="Liverpool" class="input-field"></div>
+                        </div>
+                        <div class="flex items-center space-x-3 py-4 border-b border-gray-100">
+                            <input type="checkbox" checked class="w-4 h-4 accent-cyan-600">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Billing and shipping address are the same</span>
+                        </div>
+                        <div class="py-6">
+                            <label class="checkout-label">When would you like this delivered?*</label>
+                            <div class="border border-gray-200 p-5 flex justify-between items-center">
+                                <span class="text-xs font-bold">Standard Secure (2-6 Working Days)</span>
+                                <span class="text-xs font-bold text-cyan-600 uppercase">Free</span>
+                            </div>
+                        </div>
+                        <button @click="checkoutStep = 3" class="bg-[#0a0a0a] text-white px-10 py-5 text-[10px] font-bold uppercase tracking-widest hover:bg-cyan-600 transition-all">Save & Continue</button>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 p-8 shadow-sm">
+                    <div class="flex justify-between items-center mb-10 border-b border-gray-100 pb-4">
+                        <h2 class="brand-font text-2xl font-bold italic tracking-tighter" :class="checkoutStep < 3 ? 'opacity-20' : ''">3 PAYMENT</h2>
+                        <div x-show="checkoutStep === 3" class="flex items-center space-x-2 text-[#635BFF] font-bold text-[10px] uppercase tracking-widest">
+                            <i class="fa-brands fa-stripe text-3xl"></i>
+                            <span class="hidden md:inline">Secure Checkout</span>
+                        </div>
+                    </div>
+
+                    <div x-show="checkoutStep === 3" class="space-y-6 page-fade">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                            <div class="border-2 border-[#635BFF] bg-[#635BFF]/5 p-4 flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-credit-card text-[#635BFF]"></i>
+                                <span class="text-[10px] font-bold uppercase text-[#635BFF]">Card</span>
+                            </div>
+                            <div class="border border-gray-100 p-4 flex items-center justify-center space-x-2 opacity-40">
+                                <i class="fa-brands fa-paypal"></i>
+                                <span class="text-[10px] font-bold uppercase">PayPal</span>
+                            </div>
+                            <div class="border border-gray-100 p-4 flex items-center justify-center space-x-2 opacity-40">
+                                <i class="fa-brands fa-google-pay"></i>
+                                <span class="text-[10px] font-bold uppercase">GPay</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 border border-gray-200 p-6 rounded-md space-y-4">
+                            <label class="checkout-label">Card Information*</label>
+                            
+                            <div id="card-element" class="p-3 bg-white border border-gray-300 rounded hover:border-[#635BFF] transition-colors"></div>
+                            
+                            <div id="card-errors" role="alert" class="text-red-500 text-xs font-bold mt-2"></div>
+                            
+                            <div class="flex items-center justify-center space-x-2 pt-2 text-gray-400">
+                                <i class="fa-solid fa-lock text-[10px]"></i>
+                                <span class="text-[10px] font-bold uppercase tracking-widest">Payments processed securely by Stripe</span>
+                            </div>
+                        </div>
+
+                        <button @click="processPayment(cartTotal)" class="w-full bg-[#635BFF] text-white px-10 py-6 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-black transition-all shadow-xl">Pay Securely via Stripe</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-white border border-gray-200 p-8 sticky top-32 shadow-sm">
+                    <h3 class="brand-font text-xl font-bold italic tracking-tighter mb-8 border-b border-gray-100 pb-4">ORDER SUMMARY</h3>
+                    
+                    <div class="space-y-4 mb-8 max-h-[40vh] overflow-y-auto pr-2">
+                        <template x-for="(item, index) in cartItems" :key="index">
+                            <div class="flex space-x-4 border-b border-gray-50 pb-4">
+                                <div class="w-16 h-16 bg-gray-50 flex-shrink-0">
+                                    <img :src="item.img" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex flex-col justify-center">
+                                    <span class="text-[9px] font-black text-cyan-600" x-text="item.sku"></span>
+                                    <h4 class="text-[10px] font-bold uppercase leading-tight mt-1" x-text="item.name"></h4>
+                                    <span class="text-xs font-light mt-1" x-text="'£' + item.price.toFixed(2)"></span>
+                                </div>
+                            </div>
+                        </template>
+                        <div x-show="cartItems.length === 0" class="text-xs text-gray-400 italic">No items allocated.</div>
+                    </div>
+
+                    <div class="space-y-4 text-[11px] font-bold uppercase tracking-widest">
+                        <div class="flex justify-between text-gray-400">
+                            <span>Subtotal</span>
+                            <span class="text-black" x-text="'£' + cartTotal.toFixed(2)"></span>
+                        </div>
+                        <div class="flex justify-between text-gray-400">
+                            <span>Secure Shipping</span>
+                            <span class="text-green-500">FREE</span>
+                        </div>
+                        <div class="flex justify-between text-gray-400 border-b border-gray-100 pb-4">
+                            <span>VAT (Included)</span>
+                            <span class="text-black">£0.00</span>
+                        </div>
+                        <div class="flex justify-between text-lg font-black tracking-tighter pt-2">
+                            <span>TOTAL</span>
+                            <span class="text-[#635BFF]" x-text="'£' + cartTotal.toFixed(2)"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-10 p-4 bg-gray-50 text-[9px] text-gray-400 leading-relaxed font-bold uppercase tracking-widest text-center flex flex-col items-center justify-center space-y-2">
+                        <span>Secure Transaction / VQ Protocol 4.0 encrypted.</span>
+                        <i class="fa-brands fa-stripe text-2xl text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="bg-cyan-600 py-32 px-8 text-white overflow-hidden relative">
+        <div class="brand-font text-[15vw] absolute -bottom-20 -left-10 text-white/10 select-none">MEDICAL</div>
+        <div class="max-w-[1440px] mx-auto relative z-10 flex flex-col md:flex-row justify-between items-center gap-12">
+            <div class="max-w-2xl">
+                <h2 class="brand-font text-4xl md:text-5xl font-bold italic mb-6">CLINICAL GRADE PURITY</h2>
+                <p class="opacity-80 text-lg leading-loose font-light">
+                    Engineered for precision and patient safety. Our USP-certified medical gas infrastructure provides unparalleled stability for surgical suites, dental practices, and emergency healthcare environments.
+                </p>
+            </div>
+            <button @click="page = 'medical'; window.scrollTo(0,0);" class="bg-[#0a0a0a] text-white px-12 py-6 font-bold uppercase tracking-widest text-[11px] hover:bg-white hover:text-black transition-all shadow-2xl">View Medical Catalog</button>
+        </div>
+    </section>
+
+    <footer class="bg-white pt-32 pb-12 px-8 border-t border-gray-100">
+        <div class="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-4 gap-20 mb-20">
+            <div class="col-span-1 lg:col-span-2 space-y-10">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-[#0a0a0a] flex items-center justify-center rounded-tr-lg rounded-bl-lg">
+                        <span class="brand-font text-white text-lg">V</span>
+                    </div>
+                    <span class="brand-font text-xl font-bold tracking-tighter leading-none">VALENCE QUARTZ</span>
+                </div>
+                <p class="text-gray-400 max-w-sm text-[11px] leading-loose font-bold uppercase tracking-widest">
+                    Pioneering the synthesis and distribution of high-purity Nitrous Oxide for the modern global landscape. Secure. Pure. Unbeatable.
+                </p>
+                <div class="flex space-x-10 text-gray-300">
+                    <i class="fa-brands fa-linkedin-in hover:text-cyan-500 transition cursor-pointer text-xl"></i>
+                    <i class="fa-brands fa-x-twitter hover:text-cyan-500 transition cursor-pointer text-xl"></i>
+                    <i class="fa-brands fa-instagram hover:text-cyan-500 transition cursor-pointer text-xl"></i>
+                </div>
+            </div>
+            <div>
+                <h4 class="brand-font text-xs font-bold uppercase tracking-[0.2em] mb-10">Infrastructure</h4>
+                <ul class="space-y-5 text-[10px] uppercase tracking-widest font-bold text-gray-400">
+                    <li @click="page = 'home'" class="hover:text-black cursor-pointer transition">Home</li>
+                    <li @click="page = 'chargers'" class="hover:text-black cursor-pointer transition">Cream Chargers</li>
+                    <li @click="page = 'tanks'" class="hover:text-black cursor-pointer transition">N2O Tanks</li>
+                    <li @click="page = 'medical'" class="hover:text-black cursor-pointer transition">Medical Supply</li>
+                    <li @click="page = 'contact'" class="hover:text-black cursor-pointer transition">Contact</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="brand-font text-xs font-bold uppercase tracking-[0.2em] mb-10">Contact Portal</h4>
+                <p class="text-gray-900 text-xs leading-loose font-bold uppercase mb-4 tracking-widest">
+                    VQ Tower, Level 88<br>
+                    Singapore Financial District
+                </p>
+                <p class="text-cyan-600 font-bold text-sm tracking-widest uppercase border-b border-cyan-600 inline-block">
+                    direct@valence-quartz.com
+                </p>
+            </div>
+        </div>
+        <div class="max-w-[1440px] mx-auto pt-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-[9px] uppercase tracking-[0.5em] text-gray-400 font-extrabold">
+            <span>&copy; 2026 VALENCE QUARTZ GLOBAL CO.</span>
+            <div class="flex space-x-10 mt-6 md:mt-0">
+                <span>Privacy / VQ-202</span>
+                <span>Terms of Supply</span>
+                <span>Hazard Compliance</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Stripe with YOUR specific Publishable Key
+        const stripe = Stripe('pk_test_51TPIHsCS4Dl4b8aeS0Q8KaubCA1n30oe1s3GDKD5xoBBXjxqFbDZycsEJZVeQbmAehSTf3jJZkcO0dVEpQjoeYef00XecyicPR'); 
+        const elements = stripe.elements();
+        
+        // Create and style the secure card input
+        const style = {
+          base: {
+            color: '#0f172a',
+            fontFamily: '"Plus Jakarta Sans", sans-serif',
+            fontSmoothing: 'antialiased',
+            fontSize: '14px',
+            '::placeholder': { color: '#aab7c4' }
+          },
+          invalid: { color: '#ef4444', iconColor: '#ef4444' }
+        };
+
+        const card = elements.create('card', {style: style});
+        card.mount('#card-element');
+
+        // Handle validation errors in real-time
+        card.on('change', function(event) {
+          const displayError = document.getElementById('card-errors');
+          if (event.error) {
+            displayError.textContent = event.error.message;
+          } else {
+            displayError.textContent = '';
+          }
+        });
+
+        // Function that runs when they click "Pay Securely"
+        async function processPayment(cartTotal) {
+            const displayError = document.getElementById('card-errors');
+            
+            // Prevent empty checkouts
+            if (cartTotal <= 0) {
+                displayError.textContent = "Your cart is currently empty.";
+                return;
+            }
+
+            try {
+                // A. Tell your backend to create a "Payment Intent" for the total amount
+                const response = await fetch('/create-payment-intent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: cartTotal }) 
+                });
+                
+                if (!response.ok) {
+                    throw new Error("Could not connect to the backend server. Please ensure your backend is running.");
+                }
+
+                const { clientSecret } = await response.json();
+
+                // B. Confirm the card payment directly with Stripe using the Secret
+                const result = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: {
+                        card: card,
+                    }
+                });
+
+                if (result.error) {
+                    // The card was declined or there was an error
+                    displayError.textContent = result.error.message;
+                } else {
+                    // SUCCESS! The payment went through.
+                    if (result.paymentIntent.status === 'succeeded') {
+                        alert('VQ Protocol: Payment successful! Funds have been secured.');
+                    }
+                }
+            } catch (error) {
+                console.error("Error processing payment:", error);
+                displayError.textContent = "Server connection failed. Make sure your server.js file is actively running.";
+            }
+        }
+    </script>
+</body>
+</html>
