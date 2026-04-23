@@ -662,8 +662,13 @@
             }
 
             try {
-                // A. Tell your backend to create a "Payment Intent" for the total amount
-                const response = await fetch('/create-payment-intent', {
+                // ========================================================================
+                // IMPORTANT: Change YOUR-RENDER-APP-NAME below to your actual Render URL
+                // Example: https://valence-quartz-backend-7xy1.onrender.com/create-payment-intent
+                // ========================================================================
+                const backendUrl = 'https://github.com/yevinb/server';
+                
+                const response = await fetch(backendUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ amount: cartTotal }) 
@@ -675,7 +680,7 @@
 
                 const { clientSecret } = await response.json();
 
-                // B. Confirm the card payment directly with Stripe using the Secret
+                // Confirm the card payment directly with Stripe using the Secret
                 const result = await stripe.confirmCardPayment(clientSecret, {
                     payment_method: {
                         card: card,
@@ -693,7 +698,7 @@
                 }
             } catch (error) {
                 console.error("Error processing payment:", error);
-                displayError.textContent = "Server connection failed. Make sure your server.js file is actively running.";
+                displayError.textContent = "Server connection failed. Please check your Render URL is correct in the HTML file.";
             }
         }
     </script>
